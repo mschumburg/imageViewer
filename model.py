@@ -21,6 +21,8 @@ class LolImage():
         self.name = name
         self.ext = [x]
         self.is_jpg = False
+        self.data = None
+        self.isProcessed = False
 
         if x == '.jpg' or x == '.jpeg':
             self.is_jpg = True
@@ -53,6 +55,8 @@ class Model():
     panelW = 0
     panelH = 0
 
+    preRenderCount = 0
+
     t = Timer()
 
     def __init__(self):
@@ -73,6 +77,38 @@ class Model():
         
         self.imgList = imgList
 
+        #self.preRender(3)
+
+
+    def preRender(self):
+        # if self.index == -1 || self.index == 0:
+        #     for i in range(batchSize):
+        #         pass
+
+        # nach vorne rendern
+        index = self.index
+        if index < 0:
+            index = 0
+
+        for i in range(index, index + self.preRenderCount + 1):
+            print(i)
+            img = self.getAtIndexImg(i)
+            self.imgList[i].isProcessed = True
+            self.imgList[i].data = img
+
+    def renderNext(self):
+        index = self.index + 1
+        img = self.getAtIndexImg(index)
+        self.imgList[index].isProcessed = True
+        self.imgList[index].data = img
+
+        # if index > self.preRenderCount:
+
+        #     self.imgList[index - self.preRenderCount -1].data = None
+
+        print('next rendered')
+
+
     def getSize(self, w, h):
         if w > h:
             newW = self.PhotoMaxSize
@@ -91,9 +127,7 @@ class Model():
         return [newW, newH]
 
     def getAtIndexImg(self, index):
-        imgPath = self.rootDir + self.imgList[self.index].getPath()
-
-        # print(imgPath)
+        imgPath = self.rootDir + self.imgList[index].getPath()
 
         if self.imgList[index].is_jpg:
             f = open(imgPath, 'rb')
@@ -130,10 +164,12 @@ class Model():
             wxBmap = wxImg.ConvertToBitmap()
 
             return wxBmap
-
     
     def getNextImg(self):
         self.index += 1
+
+        if self.imgList[self.index].isProcessed:
+            return self.imgList[self.index].data
 
         return self.getAtIndexImg(self.index)
     

@@ -1,5 +1,7 @@
 import wx
+import time
 from timer import Timer
+import threading
 
 class ViewWx(wx.Frame):
     # PhotoMaxSize = 1280
@@ -9,98 +11,34 @@ class ViewWx(wx.Frame):
         wx.Frame.__init__(self, None)
         self.model = model
 
-        self.SetSize(1280, 720)
-        self.SetBackgroundColour(wx.Colour(0, 0, 0))
+        self.panel = wx.Panel(self)
+
+        self.panel.SetBackgroundColour('#1c1c1c')
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.midPan = wx.Panel(self.panel)
+        self.midPan.SetBackgroundColour('#1c1c1c')
+
+        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.ALL, 45)
+        self.panel.SetSizer(self.vbox)
+
+        img = wx.Bitmap(10, 10)
+        self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img)
+
         self.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
 
-        self.mainPanel = wx.Panel(self)
-        self.mainPanel.SetBackgroundColour(wx.Colour(100, 0, 0))
+        self.SetSize((1280, 720))
 
-
-        #self.imgPanel = wx.Panel(self.mainPanel)
-        #self.imgPanel.SetBackgroundColour(wx.Colour(0, 150, 0))
-        #self.imgPanel.SetSize((500, 500))
-        #self.imgPanel.SetMaxSize((500, 500))
-        #self.imgPanel.SetMinSize((500, 500))
-        self.mainPanel.SetSize(1280, 720)
-        
-        mainBox = wx.BoxSizer(wx.VERTICAL)
-        mainBox.Add(self.mainPanel, 0, wx.EXPAND, 0)
-        mainBox.SetSizeHints(self)
-        self.SetSizer(mainBox)
-
-        self.mainPanel.SetSize(1280, 720)
-
-        # self.imgPanel = wx.Panel(self.mainPanel)
-        # self.imgPanel.SetBackgroundColour(wx.Colour(0, 150, 0))
-        # self.imgPanel.SetSize((500, 500))
-        # self.imgPanel.SetMaxSize((500, 500))
-        # self.imgPanel.SetMinSize((500, 500))
-
-
-        
-
-        # self.mainPanel.SetSize(1280, 720)
-        # s = self.mainPanel.GetSize()
-        # print(s)
-        # self.model.setSize(s[0], s[1])
-        # img = self.model.getNextImg()
-        # self.imageCtrl = wx.StaticBitmap(self.mainPanel, wx.ID_ANY, img)
-
-        # sizer_v = wx.BoxSizer(wx.VERTICAL)
-        # sizer_h = wx.BoxSizer(wx.HORIZONTAL)
-        # sizer_h.Add(self.imageCtrl, 1, wx.CENTER)
-        # sizer_v.Add(sizer_h, 1, wx.CENTER)
-        # self.mainPanel.SetSizer(sizer_v)
-
-
-
-
-
-
-
-        # self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # self.sizer.Add(self.imgPanel, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALIGN_CENTER_VERTICAL, 0)
-        # self.sizer.SetSizeHints(self.imgPanel)
-        # self.mainPanel.SetSizer(self.sizer)
-
-        # self.SetSize(1280, 720)
-
-        # s = self.mainPanel.GetSize()
-        # self.model.setSize(s[0], s[1])
-
-        # img = self.model.getNextImg()
-        # self.imageCtrl = wx.StaticBitmap(self.mainPanel, wx.ID_ANY, img)
-
-        # self.sizer = wx.BoxSizer(wx.VERTICAL)
-        # #sizer.Add(self.imageCtrl, 1, wx.EXPAND | wx.ALL, 100)
-        # self.sizer.Add(self.imageCtrl, 1, wx.EXPAND, 0)
-        # self.sizer.SetSizeHints(self.mainPanel)
-        # self.mainPanel.SetSizer(self.sizer)
-
-
-        # OLD #############################
-
-
-        # self.SetSize(1280, 720)
-
-        # self.panel = wx.Panel(self)
-        # self.panel.SetSize(1100, 600)
-        # self.model.setSize(1100, 600)
-
-        # self.SetBackgroundColour(wx.Colour(30, 30, 30))
-
-        # img = self.model.getNextImg()
-
-        # self.imageCtrl = wx.StaticBitmap(self, wx.ID_ANY, img)
-
-        #self.resized = False # the dirty flag
-        #self.Bind(wx.EVT_SIZE,self.OnSize)
-        #self.Bind(wx.EVT_IDLE,self.OnIdle)
-
-        #self.panel.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
-        #self.mainPanel.Refresh()
         self.Show()
+
+        midPanSize = self.midPan.GetSize()
+        self.model.setSize(midPanSize[0], midPanSize[1])
+
+        self.model.preRenderCount = 3
+        self.model.preRender()
+
+        self.setNextImage()
+        
     
     def OnSize(self,event):
         self.resized = True # set dirty
@@ -119,27 +57,41 @@ class ViewWx(wx.Frame):
 
             self.mainPanel.Refresh()
     
+    def setNextImage(self):
+        midPanSize= self.midPan.GetSize()
+        self.model.setSize(midPanSize[0], midPanSize[1])
+        
+        img = self.model.getNextImg()
+        imgSize = img.GetSize()
+
+        xDelta = 0
+        yDelta = 0
+
+        if midPanSize[0] > imgSize[0]:
+            xDelta = int((midPanSize[0] - imgSize[0]) / 2)
+        
+        if midPanSize[1] > imgSize[1]:
+            yDelta = int((midPanSize[1] - imgSize[1]) / 2)
+        
+        self.imageCtrl.SetBitmap(img)
+        self.imageCtrl.SetPosition((xDelta, yDelta))
+
+        #self.model.renderNext()
+        threading.Thread(target=self.model.renderNext).start()
+        
+
+    def setPrevImage(self):
+        img = self.model.getPrevImg()
+        self.imageCtrl.SetBitmap(img)
+
     def keyPress(self, event):
         keycode = event.GetKeyCode()
-        panelSize = self.mainPanel.GetSize()
 
         if keycode == wx.WXK_RIGHT:
-            img = self.model.getNextImg()
-            self.imageCtrl.SetBitmap(img)
-            self.Update()
-            self.Refresh()
-            
-            #self.sizer.Add(self.imageCtrl, 1, wx.EXPAND, 0)
-            #self.sizer.SetSizeHints(self.mainPanel)
-            #self.mainPanel.SetSizer(self.sizer)
-            #self.mainPanel.Refresh()
-            #self.mainPanel.Refresh()
-            #self.mainPanel.Update()
+            self.setNextImage()
 
 
         if keycode == wx.WXK_LEFT:
-            img = self.model.getPrevImg()
-            self.imageCtrl.SetBitmap(img)
-            self.mainPanel.Refresh()
-
+            self.setPrevImage()
+            
         event.Skip()
