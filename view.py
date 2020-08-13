@@ -1,7 +1,5 @@
 import wx
-import time
 from timer import Timer
-import threading
 
 class View(wx.Frame):
     # PhotoMaxSize = 1280
