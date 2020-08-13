@@ -10,6 +10,7 @@ from pathlib import Path
 
 from PIL import Image, ImageTk
 from PIL.ExifTags import TAGS
+from exif import Image as ExifImage
 
 import rawpy
 
@@ -53,7 +54,6 @@ class Model():
 
         #self.preRender(3)
 
-
     def preRender(self):
         # if self.index == -1 || self.index == 0:
         #     for i in range(batchSize):
@@ -69,9 +69,7 @@ class Model():
         # nach vorne rendern
         for i in range(index, index + self.preRenderCount):
             print('Prerender at Index: ' + str(i))
-            img = self.getAtIndexImg(i)
-            self.imgList[i].isProcessed = True
-            self.imgList[i].data = img
+            self.renderImage(i)
 
     def renderNext(self):
         self.t.start()
@@ -79,9 +77,7 @@ class Model():
         deleteIndex = self.index - (self.preRenderCount + 1)
         
         if renderIndex < len(self.imgList) :
-            img = self.getAtIndexImg(renderIndex)
-            self.imgList[renderIndex].isProcessed = True
-            self.imgList[renderIndex].data = img
+            self.renderImage(renderIndex)
             print('Rendered at Index: ' + str(renderIndex))
 
         if deleteIndex >= 0:
@@ -94,9 +90,7 @@ class Model():
         deleteIndex = self.index + (self.preRenderCount + 1)
 
         if renderIndex >= 0:
-            img = self.getAtIndexImg(renderIndex)
-            self.imgList[renderIndex].isProcessed = True
-            self.imgList[renderIndex].data = img
+            self.renderImage(renderIndex)
             print('Rendered at Index: ' + str(renderIndex))
         
         if deleteIndex < len(self.imgList):
@@ -123,10 +117,26 @@ class Model():
 
         return [newW, newH]
 
-    def getAtIndexImg(self, index):
+    def renderImage(self, index):
         imgPath = self.rootDir + self.imgList[index].getPath()
 
+        with open(imgPath,  'rb') as file:
+            exifData2 = ExifImage(file)
+        
+        try:
+            self.imgList[index].focalLength = exifData2.focal_length
+            self.imgList[index].aperture = exifData2.f_number
+            self.imgList[index].exposureTime = exifData2.exposure_time
+            self.imgList[index].iso = exifData2.photographic_sensitivity
+        except:
+            pass
+
+
+        # print(dir(img))
+
         print('New Index: ' + str(self.index))
+
+        imgData = None
 
         if self.imgList[index].is_jpg:
             f = open(imgPath, 'rb')
@@ -144,7 +154,10 @@ class Model():
             newSize = self.getSize2(img.GetWidth(), img.GetHeight())
             img = img.Scale(newSize[0], newSize[1])
 
-            return img.ConvertToBitmap()
+            self.imgList[index].data = img.ConvertToBitmap()
+            self.imgList[index].isProcessed = True
+
+            imgData = img.ConvertToBitmap()
         else:
             rgb = None
             with rawpy.imread(imgPath) as raw:
@@ -160,9 +173,10 @@ class Model():
             newSize = self.getSize2(wxImg.GetWidth(), wxImg.GetHeight())
             wxImg = wxImg.Scale(newSize[0], newSize[1])
 
-            wxBmap = wxImg.ConvertToBitmap()
-
-            return wxBmap
+            imgData = wxImg.ConvertToBitmap()
+        
+        self.imgList[index].data = imgData
+        self.imgList[index].isProcessed = True
     
     def getNextImg(self):
         if self.index == (len(self.imgList) - 1):
@@ -172,10 +186,12 @@ class Model():
 
         threading.Thread(target=self.renderNext).start()
 
-        if self.imgList[self.index].isProcessed:
-            return self.imgList[self.index].data
+        return self.imgList[self.index]
 
-        return self.getAtIndexImg(self.index)
+        # if self.imgList[self.index].isProcessed:
+        #     return self.imgList[self.index].data
+
+        # return self.renderImage(self.index)
     
     def getPrevImg(self):
         if self.index == 0:
@@ -184,20 +200,21 @@ class Model():
         self.index -= 1
 
         threading.Thread(target=self.renderPrev).start()
+
+        return self.imgList[self.index]
         
-        if self.imgList[self.index].isProcessed:
-            return self.imgList[self.index].data
+        # if self.imgList[self.index].isProcessed:
+        #     return self.imgList[self.index].data
 
-        return self.getAtIndexImg(self.index)
+        # return self.renderImage(self.index)
     
-
     def getNextImgByPath(self):
         self.index += 1
 
         return self.rootDir + self.imgList[self.index].getPath()
     
     def getCurrentImg(self):
-        return self.getAtIndexImg(self.index)
+        return self.renderImage(self.index)
 
     def setSize(self, w, h):
         self.panelW = w

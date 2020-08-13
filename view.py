@@ -1,4 +1,5 @@
 import wx
+from lolImage import LolImage
 from timer import Timer
 
 class View(wx.Frame):
@@ -14,13 +15,19 @@ class View(wx.Frame):
         self.vbox = wx.BoxSizer(wx.VERTICAL)
 
         self.midPan = wx.Panel(self.panel)
-        self.midPan.SetBackgroundColour('#1c1c1c')
+        #self.midPan.SetBackgroundColour('#1c1c1c')
 
-        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.ALL, 45)
+        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 70)
         self.panel.SetSizer(self.vbox)
 
         img = wx.Bitmap(10, 10)
         self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img)
+
+        self.toolPanel = wx.Panel(self.panel, size=(600, 45))
+        self.textField = wx.StaticText(self.toolPanel, wx.ID_ANY, label='lsdfdsfdsfol')
+        self.textField.SetForegroundColour((200, 200, 200))
+        #toolPanel.SetBackgroundColour('#ffff00')
+        self.vbox.Add(self.toolPanel, 0, wx.ALIGN_CENTER | wx.BOTTOM, 45)
 
         self.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
 
@@ -75,7 +82,8 @@ class View(wx.Frame):
         if img is None:
             return
         else: 
-            img = self.renderImage(img)
+            self.renderImage(img.data)
+            self.textField.SetLabel(img.getString())
 
             #threading.Thread(target=self.model.renderNext).start()
         
@@ -85,7 +93,8 @@ class View(wx.Frame):
         if img is None:
             return
         else: 
-            img = self.renderImage(img)
+            self.renderImage(img.data)
+            self.textField.SetLabel(img.getString())
 
             #threading.Thread(target=self.model.renderPrev).start()
 

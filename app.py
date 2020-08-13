@@ -9,7 +9,7 @@ class App(wx.App):
 
 def main():
     rootDir = 'X:/Photography/2019/2019.10_Soller/'
-    # rootDir = './imgRaw/'
+    #rootDir = './imgRaw/'
     #rootDir = './img/2/'
 
     model = Model(rootDir, 3)
