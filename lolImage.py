@@ -7,15 +7,15 @@ class LolImage():
         self.data = None
         self.isProcessed = False
 
-        if x == '.jpg' or x == '.jpeg':
+        if x in ['.jpg', '.jpeg']:
             self.is_jpg = True
     
     def addExt(self, ext):
         x = ext.lower()
 
         self.ext.append(x)
-        
-        if x == '.jpg' or x == '.jpeg':
+
+        if x in ['.jpg', '.jpeg']:
             self.is_jpg = True
     
     def getPath(self):

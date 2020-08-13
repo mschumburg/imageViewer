@@ -44,11 +44,11 @@ class Model():
             ext = p.suffix
             stem = p.stem
 
-            if len(imgList) > 0 and stem == imgList[len(imgList) - 1].name:
+            if imgList and stem == imgList[len(imgList) - 1].name:
                 imgList[len(imgList) - 1].addExt(ext)
             else:
                 imgList.append(LolImage(stem, ext))
-        
+
         self.imgList = imgList
 
         #self.preRender(3)
@@ -134,13 +134,13 @@ class Model():
             f.close()
 
             img = wx.Image(imgPath, wx.BITMAP_TYPE_ANY)
-            
+
             if 'Image Orientation' in exifData.keys():
                 orientation = exifData['Image Orientation']
                 val = orientation.values
                 if 8 in val:
                     img = img.Rotate90(clockwise=False)
-            
+
             newSize = self.getSize2(img.GetWidth(), img.GetHeight())
             img = img.Scale(newSize[0], newSize[1])
 
@@ -160,9 +160,7 @@ class Model():
             newSize = self.getSize2(wxImg.GetWidth(), wxImg.GetHeight())
             wxImg = wxImg.Scale(newSize[0], newSize[1])
 
-            wxBmap = wxImg.ConvertToBitmap()
-
-            return wxBmap
+            return wxImg.ConvertToBitmap()
     
     def getNextImg(self):
         if self.index == (len(self.imgList) - 1):
