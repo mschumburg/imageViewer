@@ -1,6 +1,7 @@
 import glob
 import time
 import os
+import threading
 
 import wx
 import exifread
@@ -13,46 +14,15 @@ from PIL.ExifTags import TAGS
 import rawpy
 
 from timer import Timer
-
-
-class LolImage():
-    def __init__(self, name, ext):
-        x = ext.lower()
-        self.name = name
-        self.ext = [x]
-        self.is_jpg = False
-        self.data = None
-        self.isProcessed = False
-
-        if x == '.jpg' or x == '.jpeg':
-            self.is_jpg = True
-    
-    def addExt(self, ext):
-        x = ext.lower()
-
-        self.ext.append(x)
-        
-        if x == '.jpg' or x == '.jpeg':
-            self.is_jpg = True
-    
-    def getPath(self):
-        if self.is_jpg:
-            return self.name + '.jpg'
-        else:
-            return self.name + '.RAF'
-        
-
-    def __str__(self):
-        return self.name + ' : ' + str(self.ext)
-
+from lolImage import LolImage
 
 class Model():
     imgList = []
     index = -1
-    rootDir = 'X:/Photography/2019/2019.10_Soller/'
-    rootDir = './imgRaw/'
-    rootDir = './img/2/'
-    PhotoMaxSize = 1280
+    # rootDir = 'X:/Photography/2019/2019.10_Soller/'
+    # rootDir = './imgRaw/'
+    # rootDir = './img/2/'
+    # PhotoMaxSize = 1280
     panelW = 0
     panelH = 0
 
@@ -60,7 +30,10 @@ class Model():
 
     t = Timer()
 
-    def __init__(self):
+    def __init__(self, rootDir, preRenderCount):
+        self.rootDir = rootDir
+        self.preRenderCount = preRenderCount
+
         imgList = []
 
         for file in sorted(glob.glob(self.rootDir + '*')):
@@ -103,6 +76,7 @@ class Model():
     def renderNext(self):
         self.t.start()
         renderIndex = self.index + self.preRenderCount
+        deleteIndex = self.index - (self.preRenderCount + 1)
         
         if renderIndex < len(self.imgList) :
             img = self.getAtIndexImg(renderIndex)
@@ -110,20 +84,37 @@ class Model():
             self.imgList[renderIndex].data = img
             print('Rendered at Index: ' + str(renderIndex))
 
-        if self.index >= self.preRenderCount:
-            print('Delete index: ' + str(self.index - self.preRenderCount))
-            self.imgList[self.index - self.preRenderCount].data = None
+        if deleteIndex >= 0:
+            print('Delete index: ' + str(deleteIndex))
+            self.imgList[deleteIndex].data = None
         self.t.stop()
 
-    def getSize(self, w, h):
-        if w > h:
-            newW = self.PhotoMaxSize
-            newH = self.PhotoMaxSize * h / w
-        else:
-            newH = self.PhotoMaxSize
-            newW = self.PhotoMaxSize * w / h
+    def renderPrev(self):
+        renderIndex = self.index - self.preRenderCount
+        deleteIndex = self.index + (self.preRenderCount + 1)
+
+        if renderIndex >= 0:
+            img = self.getAtIndexImg(renderIndex)
+            self.imgList[renderIndex].isProcessed = True
+            self.imgList[renderIndex].data = img
+            print('Rendered at Index: ' + str(renderIndex))
         
-        return [newW, newH]
+        if deleteIndex < len(self.imgList):
+            print('Delete index: ' + str(deleteIndex))
+            self.imgList[deleteIndex].data = None
+
+        
+        #if self.index 
+
+    # def getSize(self, w, h):
+    #     if w > h:
+    #         newW = self.PhotoMaxSize
+    #         newH = self.PhotoMaxSize * h / w
+    #     else:
+    #         newH = self.PhotoMaxSize
+    #         newW = self.PhotoMaxSize * w / h
+        
+    #     return [newW, newH]
 
     def getSize2(self, w, h):
         ratio = min(self.panelW / w, self.panelH / h)
@@ -134,6 +125,8 @@ class Model():
 
     def getAtIndexImg(self, index):
         imgPath = self.rootDir + self.imgList[index].getPath()
+
+        print('New Index: ' + str(self.index))
 
         if self.imgList[index].is_jpg:
             f = open(imgPath, 'rb')
@@ -172,25 +165,36 @@ class Model():
             return wxBmap
     
     def getNextImg(self):
+        if self.index == (len(self.imgList) - 1):
+            return None
+        
         self.index += 1
 
-        if self.index > (len(self.imgList) - 1):
-            return None
+        threading.Thread(target=self.renderNext).start()
 
         if self.imgList[self.index].isProcessed:
             return self.imgList[self.index].data
 
         return self.getAtIndexImg(self.index)
     
+    def getPrevImg(self):
+        if self.index == 0:
+            return None
+        
+        self.index -= 1
+
+        threading.Thread(target=self.renderPrev).start()
+        
+        if self.imgList[self.index].isProcessed:
+            return self.imgList[self.index].data
+
+        return self.getAtIndexImg(self.index)
+    
+
     def getNextImgByPath(self):
         self.index += 1
 
         return self.rootDir + self.imgList[self.index].getPath()
-    
-    def getPrevImg(self):
-        self.index -= 1
-
-        return self.getAtIndexImg(self.index)
     
     def getCurrentImg(self):
         return self.getAtIndexImg(self.index)

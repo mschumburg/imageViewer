@@ -1,41 +1,106 @@
-import tkinter as Tk
-from PIL import Image, ImageTk
-
+import wx
+import time
 from timer import Timer
+import threading
 
-class View:
+class View(wx.Frame):
+    # PhotoMaxSize = 1280
     t = Timer()
-    def __init__(self, root, model):
-        self.frame = Tk.Frame(root)
+
+    def __init__(self, model):
+        wx.Frame.__init__(self, None)
         self.model = model
-        self.frame.pack()
 
-        root.bind('<Right>', self.next)
-        root.bind('<Left>', self.prev)
+        self.panel = wx.Panel(self)
 
+        self.panel.SetBackgroundColour('#1c1c1c')
+        self.vbox = wx.BoxSizer(wx.VERTICAL)
+
+        self.midPan = wx.Panel(self.panel)
+        self.midPan.SetBackgroundColour('#1c1c1c')
+
+        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.ALL, 45)
+        self.panel.SetSizer(self.vbox)
+
+        img = wx.Bitmap(10, 10)
+        self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img)
+
+        self.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
+
+        # self.SetSize((1280, 720))
+        self.Maximize(True)
+        self.Show()
+
+        midPanSize = self.midPan.GetSize()
+
+        self.model.setSize(midPanSize[0], midPanSize[1])
+        self.model.preRender()
+        self.setNextImage()
         
-        self.t.start()
-        rawImage = model.getAtIndexImg(0)
+    def OnSize(self,event):
+        self.resized = True # set dirty
+
+    def OnIdle(self,event):
+        if self.resized: 
+            # take action if the dirty flag is set
+            print("New size:", self.GetSize())
+            # newSize = self.GetSize()
+            # self.resized = False # reset the flag
+            # self.model.setSize(newSize[0] - 15, newSize[1] - 40)
+            # self.mainPanel.SetSize(newSize[0] - 15, newSize[1] - 40)
+
+            # img = self.model.getCurrentImg()
+            # self.imageCtrl.SetBitmap(img)
+
+            # self.mainPanel.Refresh()
+            midPanSize= self.midPan.GetSize()
+            self.model.setSize(midPanSize[0], midPanSize[1])
+    
+    def renderImage(self, img):
+        midPanSize= self.midPan.GetSize()
+
+        imgSize = img.GetSize()
+
+        xDelta = 0
+        yDelta = 0
+
+        if midPanSize[0] > imgSize[0]:
+            xDelta = int((midPanSize[0] - imgSize[0]) / 2)
         
-        rawImage = ImageTk.PhotoImage(rawImage)
+        if midPanSize[1] > imgSize[1]:
+            yDelta = int((midPanSize[1] - imgSize[1]) / 2)
         
-        self.test = Tk.Label(self.frame, image=rawImage, width=1280, height=720)
-        self.test.image = rawImage
-        self.test.pack()
-        self.t.stop()
+        self.imageCtrl.SetBitmap(img)
+        self.imageCtrl.SetPosition((xDelta, yDelta))
 
-    def next(self, e):
-        self.t.start()
-        rawImage = self.model.getNextImg()
-        rawImage = ImageTk.PhotoImage(rawImage)
-        self.test.configure(image=rawImage)
-        self.test.image = rawImage
-        self.t.stop()
+    def setNextImage(self):
+        img = self.model.getNextImg()
 
-    def prev(self, e):
-        rawImage = self.model.getPrevImg()
-        rawImage = ImageTk.PhotoImage(rawImage)
-        self.test.configure(image=rawImage)
-        self.test.image = rawImage
+        if img is None:
+            return
+        else: 
+            img = self.renderImage(img)
+
+            #threading.Thread(target=self.model.renderNext).start()
+        
+    def setPrevImage(self):
+        img = self.model.getPrevImg()
+
+        if img is None:
+            return
+        else: 
+            img = self.renderImage(img)
+
+            #threading.Thread(target=self.model.renderPrev).start()
+
+    def keyPress(self, event):
+        keycode = event.GetKeyCode()
+
+        if keycode == wx.WXK_RIGHT:
+            self.setNextImage()
 
 
+        if keycode == wx.WXK_LEFT:
+            self.setPrevImage()
+            
+        event.Skip()

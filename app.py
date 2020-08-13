@@ -1,18 +1,26 @@
-import PySimpleGUI as sg
 
-sg.theme('DarkAmber')	# Add a touch of color
-# All the stuff inside your window.
-layout = [  [sg.Text('Some text on Row 1')],
-            [sg.Text('Enter something on Row 2'), sg.InputText()],
-            [sg.Button('Ok'), sg.Button('Cancel')] ]
+import wx
+from model import Model
+from view import View
 
-# Create the Window
-window = sg.Window('Window Title', layout)
-# Event Loop to process "events" and get the "values" of the inputs
-while True:
-    event, values = window.read()
-    if event == sg.WIN_CLOSED or event == 'Cancel':	# if user closes window or clicks cancel
-        break
-    print('You entered ', values[0])
+class App(wx.App):
+    def __init__(self):
+        wx.App.__init__(self, False)
 
-window.close()
+def main():
+    # rootDir = 'X:/Photography/2019/2019.10_Soller/'
+    # rootDir = './imgRaw/'
+    rootDir = './img/2/'
+
+    model = Model(rootDir, 3)
+    
+    app = App()
+    view = View(model)
+
+    #import wx.lib.inspection
+    #wx.lib.inspection.InspectionTool().Show()
+
+    app.MainLoop()
+
+if __name__ == '__main__':
+    main()
