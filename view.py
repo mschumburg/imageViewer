@@ -2,7 +2,6 @@ import wx
 from timer import Timer
 
 class View(wx.Frame):
-    # PhotoMaxSize = 1280
     t = Timer()
 
     def __init__(self, model):
@@ -25,7 +24,6 @@ class View(wx.Frame):
 
         self.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
 
-        # self.SetSize((1280, 720))
         self.Maximize(True)
         self.Show()
 
