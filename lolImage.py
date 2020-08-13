@@ -7,6 +7,8 @@ class LolImage():
         self.data = None
         self.isProcessed = False
 
+        self.is_liked = False
+
         self.focalLength = ''
         self.iso = ''
         self.aperture = ''
@@ -23,14 +25,14 @@ class LolImage():
         if x == '.jpg' or x == '.jpeg':
             self.is_jpg = True
     
-    def getPath(self):
+    def getFileName(self):
         if self.is_jpg:
             return self.name + '.jpg'
         else:
             return self.name + '.RAF'
     
     def getString(self):
-        return self.name + ' ' + str(self.ext) + ' ' + str(self.focalLength) + ' ' + str(self.aperture)
+        return self.name + ' ' + str(self.ext) + ' ' + str(int(self.focalLength)) + 'mm f' + str(self.aperture)
 
     def __str__(self):
         return self.name + ' ' + str(self.ext) + ' ' + str(self.focalLength) + ' ' + str(self.aperture)

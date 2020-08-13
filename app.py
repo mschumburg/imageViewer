@@ -8,11 +8,11 @@ class App(wx.App):
         wx.App.__init__(self, False)
 
 def main():
-    rootDir = 'X:/Photography/2019/2019.10_Soller/'
+    rootDir = 'X:/Photography/2019/2019.10_Soller'
     #rootDir = './imgRaw/'
     #rootDir = './img/2/'
 
-    model = Model(rootDir, 3)
+    model = Model(rootDir, 2)
     
     app = App()
     view = View(model)

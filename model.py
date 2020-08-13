@@ -37,7 +37,9 @@ class Model():
 
         imgList = []
 
-        for file in sorted(glob.glob(self.rootDir + '*')):
+        print(rootDir)
+
+        for file in sorted(glob.glob(self.rootDir + '/*')):
             if os.path.isdir(file):
                 continue
 
@@ -51,6 +53,10 @@ class Model():
                 imgList.append(LolImage(stem, ext))
         
         self.imgList = imgList
+
+        # with open(Path.home() / '.favs', 'r') as f:
+        #     lines = f.readlines()
+
 
         #self.preRender(3)
 
@@ -118,7 +124,7 @@ class Model():
         return [newW, newH]
 
     def renderImage(self, index):
-        imgPath = self.rootDir + self.imgList[index].getPath()
+        imgPath = self.rootDir + '/' + self.imgList[index].getFileName()
 
         with open(imgPath,  'rb') as file:
             exifData2 = ExifImage(file)
@@ -211,10 +217,38 @@ class Model():
     def getNextImgByPath(self):
         self.index += 1
 
-        return self.rootDir + self.imgList[self.index].getPath()
+        return self.rootDir + self.imgList[self.index].getFileName()
     
+    def like(self):
+
+        # WORK WITH CONFIGPARSER SECTION =)
+
+        if self.imgList[self.index].is_liked == True:
+            with open(Path.home() / '.favs', 'r') as f:
+                lines = f.readlines()
+            
+            with open(Path.home() / '.favs', 'w') as f:
+                for line in lines:
+                    if line.strip('\n') != self.imgList[self.index].getFileName():
+                        f.write(line)
+            
+            self.imgList[self.index].is_liked = False
+        else:
+            self.imgList[self.index].is_liked = True
+
+            with open(Path.home() / '.favs', 'a+') as f:
+                f.write(self.rootDir + '/' + self.imgList[self.index].getFileName() + '\n')
+
+    def setPath(self, path):
+        self.index = -1
+        self.imgList = []
+        self.__init__(path, self.preRenderCount)
+        
     def getCurrentImg(self):
         return self.renderImage(self.index)
+
+    def getDir(self):
+        return self.rootDir
 
     def setSize(self, w, h):
         self.panelW = w

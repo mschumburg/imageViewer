@@ -1,9 +1,13 @@
 import wx
 from lolImage import LolImage
 from timer import Timer
+import webbrowser
 
 class View(wx.Frame):
     t = Timer()
+
+    is_fullscreen = False
+    is_whiteBg = False
 
     def __init__(self, model):
         wx.Frame.__init__(self, None)
@@ -17,17 +21,19 @@ class View(wx.Frame):
         self.midPan = wx.Panel(self.panel)
         #self.midPan.SetBackgroundColour('#1c1c1c')
 
-        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 70)
+        self.vbox.Add(self.midPan, wx.ID_ANY, wx.EXPAND | wx.TOP | wx.LEFT | wx.RIGHT, 60)
         self.panel.SetSizer(self.vbox)
 
         img = wx.Bitmap(10, 10)
         self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img)
 
-        self.toolPanel = wx.Panel(self.panel, size=(600, 45))
+        self.toolPanel = wx.Panel(self.panel, size=(600, 30))
         self.textField = wx.StaticText(self.toolPanel, wx.ID_ANY, label='lsdfdsfdsfol')
-        self.textField.SetForegroundColour((200, 200, 200))
+        self.textField.SetForegroundColour((120, 120, 120))
+        font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_THIN)
+        self.textField.SetFont(font)
         #toolPanel.SetBackgroundColour('#ffff00')
-        self.vbox.Add(self.toolPanel, 0, wx.ALIGN_CENTER | wx.BOTTOM, 45)
+        self.vbox.Add(self.toolPanel, 0, wx.ALIGN_CENTER | wx.BOTTOM | wx.TOP, 15)
 
         self.Bind(wx.EVT_CHAR_HOOK, self.keyPress)
 
@@ -56,7 +62,7 @@ class View(wx.Frame):
             # self.imageCtrl.SetBitmap(img)
 
             # self.mainPanel.Refresh()
-            midPanSize= self.midPan.GetSize()
+            midPanSize = self.midPan.GetSize()
             self.model.setSize(midPanSize[0], midPanSize[1])
     
     def renderImage(self, img):
@@ -101,11 +107,59 @@ class View(wx.Frame):
     def keyPress(self, event):
         keycode = event.GetKeyCode()
 
-        if keycode == wx.WXK_RIGHT:
+        # print(keycode)
+
+        if keycode in [wx.WXK_RIGHT, 68]:
             self.setNextImage()
 
 
-        if keycode == wx.WXK_LEFT:
+        if keycode in [wx.WXK_LEFT, 65]:
             self.setPrevImage()
+        
+        if keycode == wx.WXK_SPACE:
+            self.is_fullscreen = not self.is_fullscreen
+
+            if self.is_fullscreen:
+                self.ShowFullScreen(True)
+            else:
+                self.ShowFullScreen(False)
+        
+        if keycode == wx.WXK_ESCAPE:
+            self.is_fullscreen = False
+            self.ShowFullScreen(False)
+        
+        # b
+        if keycode == 66:
+            self.is_whiteBg = not self.is_whiteBg
+
+            if self.is_whiteBg:
+                self.panel.SetBackgroundColour('#f7f7f7')
+                self.panel.Refresh()
+            else:
+                self.panel.SetBackgroundColour('#1c1c1c')
+                self.panel.Refresh()
+
+        # w
+        if keycode == 87:
+            self.model.like()
+
+        # s
+        if keycode in [wx.WXK_DOWN, 83]:
+            dlg = wx.DirDialog(self, message='choose a folder')
+
+            if dlg.ShowModal() == wx.ID_OK:
+                path = dlg.GetPath()
+                
+                self.model.setPath(path)
+                self.model.preRender()
+                self.setNextImage()
             
+            dlg.Destroy()
+        
+        if keycode == 69:
+            webbrowser.open('file:///' + self.model.getDir())
+        
+        if keycode == 84:
+            pass
+                    
         event.Skip()
