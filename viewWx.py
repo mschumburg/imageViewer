@@ -62,6 +62,10 @@ class ViewWx(wx.Frame):
         self.model.setSize(midPanSize[0], midPanSize[1])
         
         img = self.model.getNextImg()
+
+        if img is None:
+            return
+
         imgSize = img.GetSize()
 
         xDelta = 0

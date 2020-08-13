@@ -50,7 +50,8 @@ class Model():
     imgList = []
     index = -1
     rootDir = 'X:/Photography/2019/2019.10_Soller/'
-    #rootDir = './imgRaw/'
+    rootDir = './imgRaw/'
+    rootDir = './img/2/'
     PhotoMaxSize = 1280
     panelW = 0
     panelH = 0
@@ -84,30 +85,35 @@ class Model():
         # if self.index == -1 || self.index == 0:
         #     for i in range(batchSize):
         #         pass
-
-        # nach vorne rendern
+        if self.preRenderCount == 0:
+            return
+       
         index = self.index
+
         if index < 0:
             index = 0
 
-        for i in range(index, index + self.preRenderCount + 1):
-            print(i)
+        # nach vorne rendern
+        for i in range(index, index + self.preRenderCount):
+            print('Prerender at Index: ' + str(i))
             img = self.getAtIndexImg(i)
             self.imgList[i].isProcessed = True
             self.imgList[i].data = img
 
     def renderNext(self):
-        index = self.index + 1
-        img = self.getAtIndexImg(index)
-        self.imgList[index].isProcessed = True
-        self.imgList[index].data = img
+        self.t.start()
+        renderIndex = self.index + self.preRenderCount
+        
+        if renderIndex < len(self.imgList) :
+            img = self.getAtIndexImg(renderIndex)
+            self.imgList[renderIndex].isProcessed = True
+            self.imgList[renderIndex].data = img
+            print('Rendered at Index: ' + str(renderIndex))
 
-        # if index > self.preRenderCount:
-
-        #     self.imgList[index - self.preRenderCount -1].data = None
-
-        print('next rendered')
-
+        if self.index >= self.preRenderCount:
+            print('Delete index: ' + str(self.index - self.preRenderCount))
+            self.imgList[self.index - self.preRenderCount].data = None
+        self.t.stop()
 
     def getSize(self, w, h):
         if w > h:
@@ -167,6 +173,9 @@ class Model():
     
     def getNextImg(self):
         self.index += 1
+
+        if self.index > (len(self.imgList) - 1):
+            return None
 
         if self.imgList[self.index].isProcessed:
             return self.imgList[self.index].data
