@@ -25,10 +25,12 @@ class View(wx.Frame):
         self.panel.SetSizer(self.vbox)
 
         img = wx.Bitmap(10, 10)
+        #img = wx.Image('./assets/img/main.png', wx.BITMAP_TYPE_ANY)
         self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img)
+        #self.imageCtrl = wx.StaticBitmap(self.midPan, wx.ID_ANY, img.ConvertToBitmap())
 
         self.toolPanel = wx.Panel(self.panel, size=(600, 30))
-        self.textField = wx.StaticText(self.toolPanel, wx.ID_ANY, label='lsdfdsfdsfol')
+        self.textField = wx.StaticText(self.toolPanel, wx.ID_ANY, label='')
         self.textField.SetForegroundColour((120, 120, 120))
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_THIN)
         self.textField.SetFont(font)
@@ -40,28 +42,21 @@ class View(wx.Frame):
         self.Maximize(True)
         self.Show()
 
-        midPanSize = self.midPan.GetSize()
+        img = wx.Image('../assets/img/main.png', wx.BITMAP_TYPE_ANY)
+        self.renderImage(img.ConvertToBitmap())
 
+        midPanSize = self.midPan.GetSize()
         self.model.setSize(midPanSize[0], midPanSize[1])
-        self.model.preRender()
-        self.setNextImage()
+        
+        #self.model.preRender()
+        #self.setNextImage()
         
     def OnSize(self,event):
         self.resized = True # set dirty
 
     def OnIdle(self,event):
         if self.resized: 
-            # take action if the dirty flag is set
             print("New size:", self.GetSize())
-            # newSize = self.GetSize()
-            # self.resized = False # reset the flag
-            # self.model.setSize(newSize[0] - 15, newSize[1] - 40)
-            # self.mainPanel.SetSize(newSize[0] - 15, newSize[1] - 40)
-
-            # img = self.model.getCurrentImg()
-            # self.imageCtrl.SetBitmap(img)
-
-            # self.mainPanel.Refresh()
             midPanSize = self.midPan.GetSize()
             self.model.setSize(midPanSize[0], midPanSize[1])
     
@@ -90,8 +85,6 @@ class View(wx.Frame):
         else: 
             self.renderImage(img.data)
             self.textField.SetLabel(img.getString())
-
-            #threading.Thread(target=self.model.renderNext).start()
         
     def setPrevImage(self):
         img = self.model.getPrevImg()
@@ -102,11 +95,8 @@ class View(wx.Frame):
             self.renderImage(img.data)
             self.textField.SetLabel(img.getString())
 
-            #threading.Thread(target=self.model.renderPrev).start()
-
     def keyPress(self, event):
         keycode = event.GetKeyCode()
-
         # print(keycode)
 
         if keycode in [wx.WXK_RIGHT, 68]:

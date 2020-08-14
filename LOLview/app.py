@@ -13,10 +13,11 @@ def main():
     #rootDir = './img/2/'
     rootDir = './img/'
 
-    model = Model(rootDir, 2)
+    model = Model(rootDir, 3)
     
     app = App()
     view = View(model)
+    view.Title = 'LOLview'
 
     #import wx.lib.inspection
     #wx.lib.inspection.InspectionTool().Show()
