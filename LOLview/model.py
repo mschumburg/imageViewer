@@ -47,11 +47,11 @@ class Model():
             ext = p.suffix
             stem = p.stem
 
-            if len(imgList) > 0 and stem == imgList[len(imgList) - 1].name:
+            if imgList and stem == imgList[len(imgList) - 1].name:
                 imgList[len(imgList) - 1].addExt(ext)
             else:
                 imgList.append(LolImage(stem, ext))
-        
+
         self.imgList = imgList
 
         # with open(Path.home() / '.favs', 'r') as f:
