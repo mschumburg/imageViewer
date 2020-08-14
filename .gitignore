@@ -5,3 +5,4 @@ main.build/
 __pycache__/
 img/
 poetry.lock
+imgRaw/
