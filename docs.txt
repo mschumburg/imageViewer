@@ -1,0 +1,21 @@
+.pyc bytecode
+http://effbot.org/pyfaq/how-do-i-create-a-pyc-file.htm
+
+Nuitka
+Cython
+
+Numba
+
+Rust
+
+
+https://github.com/uploadcare/pillow-simd
+https://imageio.github.io/
+https://github.com/hhatto/pgmagick
+https://github.com/hhatto/pgmagick/blob/master/benchmark/benchmark.log
+https://keras.io/api/preprocessing/image/
+https://docs.wand-py.org/en/0.4.4/guide/read.html#read-a-blob
+https://docs.opencv.org/trunk/d3/df2/tutorial_py_basic_ops.html
+
+
+https://www.kaggle.com/tsilveira/raw-image-processing

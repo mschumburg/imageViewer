@@ -11,6 +11,7 @@ def main():
     rootDir = 'X:/Photography/2019/2019.10_Soller'
     #rootDir = './imgRaw/'
     #rootDir = './img/2/'
+    rootDir = './img/'
 
     model = Model(rootDir, 2)
     

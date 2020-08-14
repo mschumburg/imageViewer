@@ -78,7 +78,6 @@ class Model():
             self.renderImage(i)
 
     def renderNext(self):
-        self.t.start()
         renderIndex = self.index + self.preRenderCount
         deleteIndex = self.index - (self.preRenderCount + 1)
         
@@ -89,7 +88,6 @@ class Model():
         if deleteIndex >= 0:
             print('Delete index: ' + str(deleteIndex))
             self.imgList[deleteIndex].data = None
-        self.t.stop()
 
     def renderPrev(self):
         renderIndex = self.index - self.preRenderCount
@@ -124,6 +122,8 @@ class Model():
         return [newW, newH]
 
     def renderImage(self, index):
+        self.t.start()
+
         imgPath = self.rootDir + '/' + self.imgList[index].getFileName()
 
         with open(imgPath,  'rb') as file:
@@ -183,6 +183,8 @@ class Model():
         
         self.imgList[index].data = imgData
         self.imgList[index].isProcessed = True
+
+        self.t.stop()
     
     def getNextImg(self):
         if self.index == (len(self.imgList) - 1):
