@@ -1,8 +1,4 @@
 .env/
-build/
-dist/
-main.build/
 __pycache__/
-img/
+.vscode/
 poetry.lock
-imgRaw/
